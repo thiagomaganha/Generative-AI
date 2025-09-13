@@ -56,12 +56,13 @@ This project implements a RAG system that combines:
 ## 📁 Project Structure
 
 ```
-soccer-chatbot/
+soccer-history-chatbot/
 ├── src/
-│   └── app.py              # Main application file
-├── chroma_store/           # Vector database storage
-├── requirements.txt        # Python dependencies
-└── README.md              # Project documentation
+│   └── app.py
+├── venv/                 
+├── requirements.txt
+├── .env                 
+└── README.md
 ```
 
 ## 🚀 Setup & Installation
@@ -74,8 +75,8 @@ soccer-chatbot/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/soccer-chatbot.git
-   cd soccer-chatbot
+   https://github.com/thiagomaganha/Generative-AI.git
+   cd soccer-history-chatbot
    ```
 
 2. **Create virtual environment**

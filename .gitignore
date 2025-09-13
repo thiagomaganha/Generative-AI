@@ -40,3 +40,4 @@ flagged/
 htmlcov/
 .coverage
 .coverage.*
+soccer-history-chatbot/.gradio/certificate.pem

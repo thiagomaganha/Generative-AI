@@ -27,8 +27,15 @@ prompt = ChatPromptTemplate.from_messages([
     ("human", "{input}")
 ])
 
-#Setup LLM chain
-llm = ChatOpenAI(temperature=0)
+#Setup LLM model 
+llm = ChatOpenAI(
+    temperature=0,
+    model="gpt-4o-mini",
+    max_tokens=1000,        
+    timeout=30,             
+    max_retries=3,          
+    streaming=True          
+)
 
 question_answer_chain = create_stuff_documents_chain(llm, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
@@ -63,7 +70,7 @@ def chat(query, history):
 
     return "", chat_history_messages 
 
-with gr.Blocks() as demo:
+with gr.Blocks() as client:
     gr.Markdown("## 📚 The World Cup history chatbot")
     chatbot_ui = gr.Chatbot(type="messages")
     msg = gr.Textbox(placeholder="Ask me about the history of soccer and the FIFA World Cups...")
@@ -81,4 +88,4 @@ with gr.Blocks() as demo:
 
     clear.click(reset_chat, None, chatbot_ui, queue=False)
 
-demo.launch(share=True)
+client.launch(share=True)
