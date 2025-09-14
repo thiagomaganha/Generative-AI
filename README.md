@@ -1,6 +1,6 @@
 # 🤖 Generative AI Portfolio
 
-Welcome to my Generative AI journey! This repository showcases practical projects and applications developed during my **Applied Generative AI certification** from Simplilearn - a comprehensive 64-hour program covering modern AI technologies.
+Welcome to my Generative AI journey! This repository showcases practical projects and applications developed with the knowledge eared during my **Applied Generative AI certification** from Simplilearn - a comprehensive 64-hour program covering modern AI technologies.
 
 ## 🎯 About This Repository
 

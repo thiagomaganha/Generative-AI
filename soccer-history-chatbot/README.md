@@ -2,6 +2,8 @@
 
 A conversational AI chatbot specialized in soccer history and FIFA World Cup knowledge, built with RAG (Retrieval-Augmented Generation) architecture using LangChain and Gradio.
 
+![alt text](image.png)
+
 ## 🌟 Features
 
 - **Interactive Chat Interface**: Clean, modern web interface powered by Gradio
