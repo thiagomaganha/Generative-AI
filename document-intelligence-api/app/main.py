@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 from app.core.config import settings
+from app.api import documents
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -18,6 +19,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.include_router(
+    documents.router, 
+    prefix=f"{settings.API_V1_STR}/documents", 
+    tags=["documents"]
 )
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
