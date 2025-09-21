@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+from app.models.types import DocumentAnalysis
 
 class DocumentStatus(str, Enum):
     PENDING = "pending"
@@ -13,13 +14,6 @@ class DocumentType(str, Enum):
     PDF = "pdf"
     DOCX = "docx"
     TXT = "txt"
-
-class DocumentAnalysis(BaseModel):
-    summary: Optional[str] = None
-    key_entities: List[str] = []
-    topics: List[str] = []
-    sentiment: Optional[str] = None
-    confidence_score: Optional[float] = None
 
 class DocumentResponse(BaseModel):
     id: str
