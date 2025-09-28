@@ -69,11 +69,11 @@ class AIAnalyzer:
             )
             
             entities_text = response.choices[0].message.content.strip()
+            entities_text = self._clean_text(entities_text)
             try:
                 entities = json.loads(entities_text)
                 return entities if isinstance(entities, list) else []
             except:
-                # Fallback: simple parsing
                 return self._parse_entities_fallback(entities_text)
                 
         except Exception as e:
@@ -97,6 +97,7 @@ class AIAnalyzer:
             )
             
             topics_text = response.choices[0].message.content.strip()
+            topics_text = self._clean_text(topics_text)
             try:
                 topics = json.loads(topics_text)
                 return topics if isinstance(topics, list) else []
@@ -164,3 +165,13 @@ class AIAnalyzer:
             return response.data[0].embedding
         except Exception as e:
             raise Exception(f"Embedding generation failed: {str(e)}")
+        
+    def _clean_text(self, input_text: str) -> str:
+        """Clean up LLM output before JSON parsing."""
+
+        input_text = re.sub(r"^```(?:json)?|```$", "", input_text.strip(), flags=re.MULTILINE)
+        
+        input_text = input_text.replace('\\"', '"').replace("\\'", "'")
+        input_text = re.sub(r",\s*]", "]", input_text)  # remove trailing commas in arrays
+        
+        return input_text.strip()

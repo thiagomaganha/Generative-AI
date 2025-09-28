@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./document-intelligence-api
+    container_name: document-intelligence-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./document-intelligence-api:/app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./app.db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  worker:
+    build: ./document-intelligence-api
+    container_name: document-intelligence-worker
+    command: celery -A app.tasks.document_tasks worker -Q default --loglevel=info --concurrency=1
+    volumes:
+      - ./document-intelligence-api:/app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./app.db
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: document-intelligence-redis
+    ports:
+      - "6379:6379"

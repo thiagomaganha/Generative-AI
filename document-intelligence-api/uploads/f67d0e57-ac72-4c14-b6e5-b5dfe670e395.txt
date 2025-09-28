@@ -1,1 +1,0 @@
-This document discusses machine learning algorithms and their applications in artificial intelligence.

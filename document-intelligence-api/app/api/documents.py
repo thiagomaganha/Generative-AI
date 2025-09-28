@@ -5,6 +5,7 @@ import uuid
 import os
 from datetime import datetime
 
+from app.models.types import DocumentAnalysis
 from app.models.document import DocumentResponse, DocumentType, DocumentStatus
 from app.services.file_handler import FileHandler
 from app.core.database import get_db, Document
@@ -16,25 +17,25 @@ async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    """Upload and process a document"""
+    """Upload and process a document with async processing"""
     
-    # Validate file
     is_valid, error_msg = FileHandler.validate_file(file)
     if not is_valid:
         raise HTTPException(status_code=400, detail=error_msg)
     
-    # Generate document ID
     document_id = str(uuid.uuid4())
     
-    # Determine document type
     file_ext = os.path.splitext(file.filename)[1].lower()
     document_type = DocumentType.PDF if file_ext == '.pdf' else \
                    DocumentType.DOCX if file_ext == '.docx' else \
                    DocumentType.TXT
     
     try:
-        # Save file
         file_path = await FileHandler.save_file(file, document_id)
+        
+        # Start async processing
+        from app.tasks.document_tasks import process_document_task
+        task = process_document_task.delay(document_id, file_path, document_type.value)
         
         # Create database record
         db_document = Document(
@@ -43,21 +44,22 @@ async def upload_document(
             file_path=file_path,
             file_size=file.size if file.size else 0,
             document_type=document_type.value,
-            status=DocumentStatus.PENDING.value
+            status=DocumentStatus.PENDING.value,
+            job_id=task.id  
         )
         
         db.add(db_document)
         db.commit()
         db.refresh(db_document)
         
-        # Return response
         return DocumentResponse(
             id=document_id,
             filename=file.filename,
             file_size=file.size if file.size else 0,
             document_type=document_type,
             status=DocumentStatus.PENDING,
-            created_at=db_document.created_at
+            created_at=db_document.created_at,
+            job_id=task.id
         )
         
     except Exception as e:
@@ -89,15 +91,29 @@ async def list_documents(
     """List documents with pagination"""
     db_documents = db.query(Document).offset(skip).limit(limit).all()
     
-    return [
-        DocumentResponse(
-            id=doc.id,
-            filename=doc.filename,
-            file_size=doc.file_size,
-            document_type=DocumentType(doc.document_type),
-            status=DocumentStatus(doc.status),
-            created_at=doc.created_at,
-            job_id=doc.job_id
+    responses = []
+    for doc in db_documents:
+        analysis = None
+        if doc.summary or doc.key_entities or doc.topics or doc.sentiment:
+            analysis = DocumentAnalysis(
+                summary=doc.summary,
+                key_entities=doc.key_entities or [],
+                topics=doc.topics or [],
+                sentiment=doc.sentiment,
+                confidence_score=doc.confidence_score or 0.0
+            )
+        
+        responses.append(
+            DocumentResponse(
+                id=doc.id,
+                filename=doc.filename,
+                file_size=doc.file_size,
+                document_type=DocumentType(doc.document_type),
+                status=DocumentStatus(doc.status),
+                created_at=doc.created_at,
+                job_id=doc.job_id,
+                analysis=analysis
+            )
         )
-        for doc in db_documents
-    ]
+    
+    return responses
