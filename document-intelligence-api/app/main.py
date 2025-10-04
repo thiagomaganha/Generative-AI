@@ -6,6 +6,7 @@ from datetime import datetime
 from app.core.config import settings
 from app.api import documents
 from app.api import jobs
+from app.api import search
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -32,6 +33,12 @@ app.include_router(
     jobs.router, 
     prefix=f"{settings.API_V1_STR}/jobs", 
     tags=["jobs"]
+)
+
+app.include_router(
+    search.router,
+    prefix=f"{settings.API_V1_STR}/search",
+    tags=["search"]
 )
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

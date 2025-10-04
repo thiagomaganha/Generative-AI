@@ -1,119 +1,52 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from sqlalchemy.orm import Session
 from typing import List
-import uuid
-import os
-from datetime import datetime
-
-from app.models.types import DocumentAnalysis
-from app.models.document import DocumentResponse, DocumentType, DocumentStatus
-from app.services.file_handler import FileHandler
-from app.core.database import get_db, Document
+from app.models.document import DocumentResponse
+from app.services.document_service import DocumentService
+from app.dependencies import get_document_service
 
 router = APIRouter()
 
 @router.post("/upload", response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    service: DocumentService = Depends(get_document_service)
 ):
     """Upload and process a document with async processing"""
     
-    is_valid, error_msg = FileHandler.validate_file(file)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=error_msg)
-    
-    document_id = str(uuid.uuid4())
-    
-    file_ext = os.path.splitext(file.filename)[1].lower()
-    document_type = DocumentType.PDF if file_ext == '.pdf' else \
-                   DocumentType.DOCX if file_ext == '.docx' else \
-                   DocumentType.TXT
-    
     try:
-        file_path = await FileHandler.save_file(file, document_id)
+        return await service.create_document(file)
         
-        # Start async processing
-        from app.tasks.document_tasks import process_document_task
-        task = process_document_task.delay(document_id, file_path, document_type.value)
-        
-        # Create database record
-        db_document = Document(
-            id=document_id,
-            filename=file.filename,
-            file_path=file_path,
-            file_size=file.size if file.size else 0,
-            document_type=document_type.value,
-            status=DocumentStatus.PENDING.value,
-            job_id=task.id  
-        )
-        
-        db.add(db_document)
-        db.commit()
-        db.refresh(db_document)
-        
-        return DocumentResponse(
-            id=document_id,
-            filename=file.filename,
-            file_size=file.size if file.size else 0,
-            document_type=document_type,
-            status=DocumentStatus.PENDING,
-            created_at=db_document.created_at,
-            job_id=task.id
-        )
-        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @router.get("/{document_id}", response_model=DocumentResponse)
-async def get_document(document_id: str, db: Session = Depends(get_db)):
+async def get_document(
+    document_id: str,
+    service: DocumentService = Depends(get_document_service)
+):
     """Get document by ID"""
-    db_document = db.query(Document).filter(Document.id == document_id).first()
-    if not db_document:
-        raise HTTPException(status_code=404, detail="Document not found")
     
-    return DocumentResponse(
-        id=db_document.id,
-        filename=db_document.filename,
-        file_size=db_document.file_size,
-        document_type=DocumentType(db_document.document_type),
-        status=DocumentStatus(db_document.status),
-        created_at=db_document.created_at,
-        job_id=db_document.job_id
-    )
+    try:
+        return await service.get_document(document_id)
+    
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @router.get("/", response_model=List[DocumentResponse])
 async def list_documents(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    service: DocumentService = Depends(get_document_service)
 ):
     """List documents with pagination"""
-    db_documents = db.query(Document).offset(skip).limit(limit).all()
+    try:
+        return await service.list_documents(skip, limit)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
     
-    responses = []
-    for doc in db_documents:
-        analysis = None
-        if doc.summary or doc.key_entities or doc.topics or doc.sentiment:
-            analysis = DocumentAnalysis(
-                summary=doc.summary,
-                key_entities=doc.key_entities or [],
-                topics=doc.topics or [],
-                sentiment=doc.sentiment,
-                confidence_score=doc.confidence_score or 0.0
-            )
-        
-        responses.append(
-            DocumentResponse(
-                id=doc.id,
-                filename=doc.filename,
-                file_size=doc.file_size,
-                document_type=DocumentType(doc.document_type),
-                status=DocumentStatus(doc.status),
-                created_at=doc.created_at,
-                job_id=doc.job_id,
-                analysis=analysis
-            )
-        )
-    
-    return responses

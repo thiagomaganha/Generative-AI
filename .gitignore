@@ -41,3 +41,6 @@ htmlcov/
 .coverage
 .coverage.*
 soccer-history-chatbot/.gradio/certificate.pem
+document-intelligence-api/documents.db
+document-intelligence-api/data/faiss_index
+document-intelligence-api/data/faiss_index_metadata.pkl
