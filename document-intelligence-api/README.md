@@ -1,6 +1,6 @@
 # 📄 Document Intelligence API
 
-The **Document Intelligence API** is a Python-based backend that enables intelligent document ingestion, analysis, and semantic search. It is capable to generate summarization, identify the key entities, detect the topics and to do the sentiment analysis on the ingested document by performing semantic search using OpenAI embeddings and a vector database.
+The **Document Intelligence API** is a Python-based backend that enables intelligent document ingestion, analysis, and semantic search. This service allow users to perform document searches by using natural language because it is capable to generate summarization, identify the key entities, detect the topics and to do the sentiment analysis on the ingested documents by performing semantic search using OpenAI embeddings and a vector database.
 It combines **FastAPI**, **Celery**, and **AI-powered NLP models** to extract insights from uploaded files and provide structured responses through REST endpoints.
 
 ---
@@ -12,6 +12,7 @@ It combines **FastAPI**, **Celery**, and **AI-powered NLP models** to extract in
 ## 🚀 Features
 
 - 📂 Upload and process documents (PDF, DOCX, TXT, etc.)
+- 🔎 Search using natural language
 - 🤖 AI-powered document analysis:
   - Text extraction
   - Summarization

@@ -15,10 +15,10 @@ This collection demonstrates hands-on implementation of key generative AI concep
 - **Concepts**: Retrieval-Augmented Generation, semantic search, prompt engineering
 
 ### [⚽ Document Intelligence API](./document-intelligence-api/)
-**AI-powered service for document ingestion, analysis, and vector-based storage**
+**AI-powered service for document ingestion, analysis, vector-based storage and search using natural language**
 - **Tech Stack**: FastAPI, Celery, Redis, OpenAI API, SQLAlchemy, Vector DB
 - **Key Features**: Document upload & parsing, AI-based summaries, entity extraction, sentiment analysis, embeddings for semantic search
-- **Concepts**: RAG (Retrieval-Augmented Generation) foundations, background task orchestration, asynchronous document processing
+- **Concepts**: RAG (Retrieval-Augmented Generation), background task orchestration, asynchronous document processing
 
 *More projects coming soon as I continue building and experimenting...*
 
